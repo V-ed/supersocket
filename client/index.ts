@@ -397,7 +397,7 @@ export default class SuperSocket {
 			let headers: any = {};
 
 			if (forward.headers) {
-				headers = { ...forward.headers };
+				headers = Object.assign({}, forward.headers);
 			}
 			try {
 				fetch(forward.onMessage, {
@@ -435,7 +435,7 @@ export default class SuperSocket {
 			let headers: any = {};
 
 			if (forward.headers) {
-				headers = { ...forward.headers };
+				headers = Object.assign({}, forward.headers);
 			}
 			try {
 				fetch(forward.onError, {
