@@ -77,11 +77,13 @@ export default class SuperSocket {
      */
     connect(): void;
     /**
-     * Called on close event
+     * Closes the underlying connection.
      */
-    close(skipReconnect?: boolean): void;
+    close(options?: {
+        skipReconnect: boolean;
+    }): void;
     /**
-     * Called on close event
+     * Called on open event
      */
     onopen: ((event: Event) => void) | null;
     /**

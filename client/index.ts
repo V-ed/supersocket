@@ -181,13 +181,13 @@ export default class SuperSocket {
 		return this._connect();
 	}
 	/**
-	 * Called on close event
+	 * Closes the underlying connection.
 	 */
-	public close(skipReconnect = false): void {
-		return this._disconnect(undefined, undefined, skipReconnect);
+	public close(options?: { skipReconnect: boolean }): void {
+		return this._disconnect(undefined, undefined, options?.skipReconnect);
 	}
 	/**
-	 * Called on close event
+	 * Called on open event
 	 */
 	public onopen: ((event: Event) => void) | null = null;
 	/**
