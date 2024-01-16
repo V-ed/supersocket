@@ -79,7 +79,7 @@ export default class SuperSocket {
     /**
      * Called on close event
      */
-    close(): void;
+    close(skipReconnect?: boolean): void;
     /**
      * Called on close event
      */
