@@ -183,8 +183,8 @@ export default class SuperSocket {
 	/**
 	 * Called on close event
 	 */
-	public close(): void {
-		return this._disconnect();
+	public close(skipReconnect = false): void {
+		return this._disconnect(undefined, undefined, skipReconnect);
 	}
 	/**
 	 * Called on close event
@@ -360,12 +360,13 @@ export default class SuperSocket {
 	/**
 	 * on close handler
 	 */
-	private _onclose = (event: CloseEvent) => {
+	private _onclose = (event: CloseEvent, skipReconnect = false) => {
 		this._lockConnect = false;
 		if (this.onclose) {
 			this.onclose(event);
 		}
 		if (
+			!skipReconnect &&
 			!this._options.disableReconnect &&
 			!this._lockReConnect &&
 			this._client?.readyState === 3
@@ -469,13 +470,13 @@ export default class SuperSocket {
 	/**
 	 * on disconnect handler
 	 */
-	private _disconnect(code = 1000, reason?: string) {
+	private _disconnect(code = 1000, reason?: string, skipReconnect = false) {
 		this._debug(`disconnecting client`);
 		if (!this._client) {
 			return;
 		}
 		this._client.close(code, reason);
-		this._onclose(new CloseEvent(code, reason, this));
+		this._onclose(new CloseEvent(code, reason, this), skipReconnect);
 	}
 
 	/**
