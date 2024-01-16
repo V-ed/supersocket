@@ -102,6 +102,17 @@ export type SuperSocketOptions = {
      */
     authenticate?: SuperSocketAuth;
     offline?: boolean;
+    /**
+     * The ping data to send.
+     *
+     * Defaults to :
+     * ```json
+     * {
+     *  "type": "ping"
+     * }
+     * ```
+     */
+    pingData?: Object;
 };
 declare const _default: {
     reconnectDelay: number;
@@ -113,5 +124,8 @@ declare const _default: {
     queryParams: {};
     offline: boolean;
     pingInterval: number;
+    pingData: {
+        type: string;
+    };
 };
 export default _default;

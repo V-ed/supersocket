@@ -285,7 +285,7 @@ export default class SuperSocket {
 			this._pingInterval = setInterval(() => {
 				if (this._client?.readyState === 1) {
 					this._debug(`sending ping to server to keep alive`);
-					this._client?.send(JSON.stringify({ type: "ping" }));
+					this._client?.send(JSON.stringify(this._options.pingData));
 				}
 			}, this._options.pingInterval);
 		}
