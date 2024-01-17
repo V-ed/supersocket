@@ -114,6 +114,12 @@ export type SuperSocketOptions = {
 	 * ```
 	 */
 	pingData?: Object;
+	/**
+	 * By default, doing `new WebSocket(...)` connects the socket immediately.
+	 * This allows to delay the connection until the `SuperSocket.connect()` method is called.
+	 * @default false
+	 */
+	lazy?: boolean;
 };
 
 export default {
@@ -129,4 +135,5 @@ export default {
 	pingData: {
 		type: "ping",
 	},
+	lazy: false,
 };

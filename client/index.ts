@@ -140,7 +140,7 @@ export default class SuperSocket {
 				.catch((err) => {
 					console.error("user unauthorized");
 				});
-		} else {
+		} else if (!this._options.lazy) {
 			this._connect();
 		}
 	}
