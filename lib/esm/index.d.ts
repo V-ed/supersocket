@@ -78,10 +78,10 @@ export default class SuperSocket {
     connect(): void;
     /**
      * Closes the underlying connection.
+     *
+     * You can catch this close attempt via a `onclose` event with `event.code === 1000` and `event.reason === 'disconnecting'`.
      */
-    close(options?: {
-        skipReconnect: boolean;
-    }): void;
+    close(): void;
     /**
      * Called on open event
      */
@@ -92,8 +92,10 @@ export default class SuperSocket {
     onmessage: ((event: WebSocket.MessageEvent) => void) | null;
     /**
      * Triggers when onclose event
+     *
+     * You can return a boolean that overrides the reconnection option (`true` force reconnect, `false` to prevent reconnection)
      */
-    onclose: ((event: CloseEvent) => void) | null;
+    onclose: ((event: CloseEvent) => boolean | void) | null;
     /**
      * Triggers when onclose event
      */

@@ -182,9 +182,11 @@ export default class SuperSocket {
 	}
 	/**
 	 * Closes the underlying connection.
+	 *
+	 * You can catch this close attempt via a `onclose` event with `event.code === 1000` and `event.reason === 'disconnecting'`.
 	 */
-	public close(options?: { skipReconnect: boolean }): void {
-		return this._disconnect(undefined, undefined, options?.skipReconnect);
+	public close(): void {
+		return this._disconnect();
 	}
 	/**
 	 * Called on open event
@@ -196,8 +198,10 @@ export default class SuperSocket {
 	public onmessage: ((event: WebSocket.MessageEvent) => void) | null = null;
 	/**
 	 * Triggers when onclose event
+	 *
+	 * You can return a boolean that overrides the reconnection option (`true` force reconnect, `false` to prevent reconnection)
 	 */
-	public onclose: ((event: CloseEvent) => void) | null = null;
+	public onclose: ((event: CloseEvent) => boolean | void) | null = null;
 	/**
 	 * Triggers when onclose event
 	 */
@@ -360,16 +364,18 @@ export default class SuperSocket {
 	/**
 	 * on close handler
 	 */
-	private _onclose = (event: CloseEvent, skipReconnect = false) => {
+	private _onclose = (event: CloseEvent) => {
 		this._lockConnect = false;
+		let doReconnectOverride: boolean | void = undefined;
 		if (this.onclose) {
-			this.onclose(event);
+			doReconnectOverride = this.onclose(event);
 		}
 		if (
-			!skipReconnect &&
-			!this._options.disableReconnect &&
-			!this._lockReConnect &&
-			this._client?.readyState === 3
+			(typeof doReconnectOverride === "boolean" && doReconnectOverride) ||
+			(doReconnectOverride === undefined &&
+				!this._options.disableReconnect &&
+				!this._lockReConnect &&
+				this._client?.readyState === 3)
 		) {
 			this._lockReConnect = true;
 			this._debug(`starting reconnect after closing`);
@@ -428,7 +434,7 @@ export default class SuperSocket {
 			event.message
 		);
 		this._lockConnect = false;
-		this._disconnect(undefined, event.message);
+		this._disconnect(1006, event.message);
 		const forward = this._options.forwardOptions;
 		if (forward && forward.onError) {
 			this._debug(`fowarding error to ${forward.onError}`);
@@ -470,13 +476,13 @@ export default class SuperSocket {
 	/**
 	 * on disconnect handler
 	 */
-	private _disconnect(code = 1000, reason?: string, skipReconnect = false) {
+	private _disconnect(code = 1000, reason = "disconnecting") {
 		this._debug(`disconnecting client`);
 		if (!this._client) {
 			return;
 		}
 		this._client.close(code, reason);
-		this._onclose(new CloseEvent(code, reason, this), skipReconnect);
+		// this._onclose(new CloseEvent(code, reason, this));
 	}
 
 	/**
