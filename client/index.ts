@@ -434,7 +434,7 @@ export default class SuperSocket {
 			event.message
 		);
 		this._lockConnect = false;
-		this._disconnect(1006, event.message);
+		this._disconnect(undefined, event.message);
 		const forward = this._options.forwardOptions;
 		if (forward && forward.onError) {
 			this._debug(`fowarding error to ${forward.onError}`);
