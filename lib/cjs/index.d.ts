@@ -75,7 +75,7 @@ export default class SuperSocket {
     /**
      * Trigger websocket connection
      */
-    connect(): void;
+    connect(): Promise<void>;
     /**
      * Closes the underlying connection.
      *

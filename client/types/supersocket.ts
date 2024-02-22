@@ -26,6 +26,11 @@ export type SuperSocketOptions = {
 	 */
 	reconnectDelay?: number;
 	/**
+	 * Delay to add to the reconnectDelay in case of authentication requirements
+	 * @default 1000
+	 */
+	reconnectWithAuthDelay?: number;
+	/**
 	 * Cypher encryption
 	 * ref: https://github.com/brix/crypto-js#object-encryption
 	 * @default undefined
@@ -124,6 +129,7 @@ export type SuperSocketOptions = {
 
 export default {
 	reconnectDelay: 1000,
+	reconnectWithAuthDelay: 1000,
 	connectionTimeout: 10000,
 	secureOnly: true,
 	maxRetries: 10,

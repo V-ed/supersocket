@@ -126,21 +126,7 @@ export default class SuperSocket {
 		this._url = hostname;
 		this._protocols = protocols;
 
-		if (this._options.authenticate) {
-			this._debug("authenticating users before opening socket");
-			this._authenticate(this._options.authenticate)
-				.then((res) => {
-					this._debug("authentication answer", res);
-					if (res && res.status !== 200) {
-						console.error(res, "user unauthorized");
-					} else {
-						this._connect();
-					}
-				})
-				.catch((err) => {
-					console.error("user unauthorized");
-				});
-		} else if (!this._options.lazy) {
+		if (!this._options.lazy) {
 			this._connect();
 		}
 	}
@@ -177,7 +163,7 @@ export default class SuperSocket {
 	/**
 	 * Trigger websocket connection
 	 */
-	public connect(): void {
+	public connect(): Promise<void> {
 		return this._connect();
 	}
 	/**
@@ -252,47 +238,69 @@ export default class SuperSocket {
 	/**
 	 * Handles websocket connection
 	 */
-	private _connect = () => {
+	private _connect = async () => {
+		if (this._lockConnect) {
+			return;
+		}
+
 		this._debug(
 			`connecting to ${this._url} (${
 				/wss/.test(this._url) ? "secured" : "unsecured"
 			})`
 		);
-		if (!this._lockConnect) {
-			this._totalRetry++;
-			this._lockConnect = true;
 
-			this._client = this._protocols?.length
-				? new ws(this._url, this._protocols)
-				: new ws(this._url);
+		if (this._options.authenticate) {
+			this._debug("authenticating users before opening socket");
+			try {
+				const res = await this._authenticate(
+					this._options.authenticate
+				);
 
-			this._debug(
-				`instanciated websocket with status ${this._client?.readyState}`
-			);
-			this._addEventListeners();
-			this._debug(`added event listeners`);
+				this._debug("authentication answer", res);
 
-			setTimeout(() => {
-				if (this._client?.readyState === 0 && !this._lockReConnect) {
-					this._debug(
-						`timeout reached (from options: ${this._options.connectionTimeout})`
-					);
-					//@ts-ignore
-					clearInterval(this._reconnectInterval);
-					//@ts-ignore
-					clearInterval(this._pingInterval);
-					const error = new ErrorEvent(new Error("timeout"), null);
-					this._onError(error);
+				if (res && res.status !== 200) {
+					console.error(res, "user unauthorized");
+					return;
 				}
-			}, this._options.connectionTimeout);
-
-			this._pingInterval = setInterval(() => {
-				if (this._client?.readyState === 1) {
-					this._debug(`sending ping to server to keep alive`);
-					this._client?.send(JSON.stringify(this._options.pingData));
-				}
-			}, this._options.pingInterval);
+			} catch (error) {
+				console.error("user unauthorized");
+				return;
+			}
 		}
+
+		this._totalRetry++;
+		this._lockConnect = true;
+
+		this._client = this._protocols?.length
+			? new ws(this._url, this._protocols)
+			: new ws(this._url);
+
+		this._debug(
+			`instanciated websocket with status ${this._client?.readyState}`
+		);
+		this._addEventListeners();
+		this._debug(`added event listeners`);
+
+		setTimeout(() => {
+			if (this._client?.readyState === 0 && !this._lockReConnect) {
+				this._debug(
+					`timeout reached (from options: ${this._options.connectionTimeout})`
+				);
+				//@ts-ignore
+				clearInterval(this._reconnectInterval);
+				//@ts-ignore
+				clearInterval(this._pingInterval);
+				const error = new ErrorEvent(new Error("timeout"), null);
+				this._onError(error);
+			}
+		}, this._options.connectionTimeout);
+
+		this._pingInterval = setInterval(() => {
+			if (this._client?.readyState === 1) {
+				this._debug(`sending ping to server to keep alive`);
+				this._client?.send(JSON.stringify(this._options.pingData));
+			}
+		}, this._options.pingInterval);
 	};
 
 	/**
@@ -343,6 +351,13 @@ export default class SuperSocket {
 	private _reconnect = () => {
 		this._lockConnect = false;
 		this._debug(`setting reconnect interval`);
+
+		const reconnectDelay =
+			this._options.reconnectDelay! +
+			(this._options.authenticate
+				? this._options.reconnectWithAuthDelay!
+				: 0);
+
 		//@ts-ignore
 		this._reconnectInterval = setInterval(() => {
 			if (this._totalRetry <= (this._options.maxRetries || 0)) {
@@ -358,7 +373,7 @@ export default class SuperSocket {
 				//@ts-ignore
 				clearInterval(this._pingInterval);
 			}
-		}, this._options.reconnectDelay);
+		}, reconnectDelay);
 	};
 
 	/**
