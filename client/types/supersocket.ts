@@ -17,6 +17,12 @@ export type SuperSocketAuth = {
 	 * @default undefined
 	 */
 	data?: any;
+	/**
+	 * The options to add to the auth fetch call.
+	 * Warning : overrides other data (headers, method, body)
+	 * @default undefined
+	 */
+	fetchOptions?: RequestInit;
 };
 
 export type SuperSocketOptions = {

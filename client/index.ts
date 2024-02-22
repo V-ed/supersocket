@@ -67,6 +67,7 @@ export default class SuperSocket {
 			headers: authOptions.headers || {},
 			method: "POST",
 			body: JSON.stringify(authOptions.data || {}),
+			...authOptions.fetchOptions,
 		});
 	}
 
